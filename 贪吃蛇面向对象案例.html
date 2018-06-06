@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        h2 {
+            text-align: center;
+            font-size: 30px;
+        }
+        .score {
+            height: 20px;
+            width: 200px;
+            font-size: 20px;
+            line-height: 20px;
+            margin: 10px auto;
+            color: mediumvioletred;
+        }
+        .score span {
+            color: yellowgreen;
+        }
+
+        .box {
+            width: 90%;
+            height: 580px;
+            background-color: skyblue;
+            margin: 0 auto;
+            border: 1px solid black;
+        }
+
+        .son {
+            width: 780px;
+            height: 480px;
+            background-color: pink;
+            margin: 50px auto;
+            position: relative;
+            /* overflow: hidden; */
+        }
+
+        .food { background: url("timg (1).jpg") no-repeat center;
+            background-size: cover;
+        }
+        /*.snake {*/
+            /*background: url("timg.jpg") no-repeat center;*/
+            /*background-size: cover;*/
+        /*}*/
+    </style>
+</head>
+
+<body>
+    <h2>贪吃蛇</h2>
+    <div class="score">
+         得分:
+        <span>0</span>
+    </div>
+    <div class="box">
+        <div class="son"></div>
+    </div>
+    <script>
+
+        // 蛇的构造函数
+        function Snake(son,width,height){
+            // 地图
+            this.son = son;
+            // 蛇的大小
+            this.width = width;
+            this.height = height;
+            // 蛇的方向
+            this.sDirection = 'right';
+            // 记录当前蛇的方向
+            this.current = this.sDirection;
+            // 蛇的坐标
+            this.position = [
+                [0,0],
+                [1,0],
+                [2,0]
+            ];
+            // 蛇的样式
+            this.render = function (){
+                // 获取元素
+                var snakes = document.getElementsByClassName("snake");
+                // 移动后会重新得到一个数组 所以要通过蛇身div的类名来删除旧数组 因为得到的是一个伪数组所以要进行遍历，删除每节蛇身
+                for (var i = 0; i < snakes.length; i++) {
+                    snakes[i].parentNode.removeChild(snakes[i]);
+                    // 每删一个数组下标会少一个 所以 i--
+                    i--;
+                }
+                for (var i = 0; i < this.position.length; i++) {
+                    // 创建一个div来表示每节蛇身
+                    var div = document.createElement("div");
+                    // 蛇的样式
+                    div.style.width = this.width + 'px';
+                    div.style.height = this.height + "px";
+                    div.style.backgroundColor = "yellowgreen";
+                    div.style.position = "absolute";
+                    div.style.left = this.position[i][0] * this.width + 'px';
+                    div.style.top = this.position[i][1] * this.height + 'px';
+                    // 给每个盒子设置一个类名
+                    div.className = "snake";
+                    // 将创建出来的div放在son盒子中
+                    this.son.appendChild(div);
+                }
+            }
+            // 蛇移动
+            this.move = function (){
+                // 因为this进入计时器后就会变成window ... 所以在这里声明一个局部变量来保存给计时器使用
+                var that = this;
+
+                // 封装蛇一个蛇每次移动后的样式  方便分等级时给计时器多次调用
+                function moveSnake() {
+                    // 先获取到蛇头的位置
+                    var headerX = that.position[that.position.length - 1][0];
+                    var headerY = that.position[that.position.length - 1][1];
+
+                    // 判断要转换的方向是否与当前的方向 为 反方向 如果是反方向的话 则将要转换的方向重新赋值成当前的方向
+                    switch (that.current) {
+                        case "right":
+                            if (that.sDirection == "left") {
+                                that.sDirection = that.current;
+                            }
+                            break;
+                        case "left":
+                            if (that.sDirection == "right") {
+                                that.sDirection = that.current;
+                            }
+                            break;
+                        case "top":
+                            if (that.sDirection == "botton") {
+                                that.sDirection = that.current;
+                            }
+                            break;
+                        case "botton":
+                            if (that.sDirection == "top") {
+                                that.sDirection = that.current;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                    // 将转换后的方向 赋值给当前方向
+                    that.current = that.sDirection;
+
+
+                    // 判断蛇的移动方向
+                    switch (that.sDirection) {
+                        case "right":
+                            headerX++;
+                            break;
+                        case "left":
+                            headerX--;
+                            break;
+                        case "top":
+                            headerY--;
+                            break;
+                        case "botton":
+                            headerY++;
+                            break;
+                        default:
+                            break;
+                    }
+
+
+                    // 使蛇能在地图中来回行走 不会撞墙死亡
+                    if (headerX >= options.maxX) {
+                        headerX = 0;
+                    } else if (headerX < 0) {
+                        headerX = options.maxX - 1;
+                    } else if (headerY >= options.maxY) {
+                        headerY = 0;
+                    } else if (headerY < 0) {
+                        headerY = options.maxY - 1;
+                    }
+
+                    // 当蛇吃到自己的身体时结束游戏
+                    for (var i = 0; i < that.position.length; i++) {
+                        if (headerX == that.position[i][0] && headerY == that.position[i][1]) {
+                            clearInterval(TimerId);
+                            alert("游戏结束！");
+                            return;
+                        }
+                    }
+
+                    // 判断完成后   在移动蛇
+                    // 将移动过后的蛇头位置添加到数组中 ，再删除蛇尾的位置 ，通过计时器使蛇移动
+                    that.position.push([headerX, headerY]);
+
+
+//                    // 判断是否越界
+//                    if(headerX < 0 || headerX >= options.maxX || headerY < 0 || headerY >= options.maxY){
+//                        clearInterval(TimerId);
+//                        alert("撞墙咯！！！");
+//                        return;
+//                    }
+
+
+                    // 判断是否吃到食物
+                    if (headerX == food.foodX && headerY == food.foodY) {
+                        // 吃到时移出当前食物的div
+                        var foodDom = document.querySelector(".food");
+                        foodDom.parentNode.removeChild(foodDom);
+                        // 再次调用一个随机食物
+                        food = new Food(options.son, options.boxWidth, options.boxHeight);
+                        // 记录分值的索引
+                        options.score += 10;
+                        // 刷新分值
+                        document.querySelector("span").innerHTML = options.score;
+                    } else {
+                        // 没吃到时 每走一步删除减掉自己的尾巴
+                        that.position.shift();
+                    }
+                    // 计时器最后每次刷新一次蛇的位置和样式
+                    that.render();
+
+                    // 通过分数来分等级  分数越多  移动速度越快
+                    if(options.score >= 50){
+                        clearInterval(TimerId);
+                        TimerId = setInterval(moveSnake,180);
+                    }
+                    if(options.score >= 100){
+                        clearInterval(TimerId);
+                        TimerId = setInterval(moveSnake,150);
+                    }
+                    if(options.score >= 150){
+                        clearInterval(TimerId);
+                        TimerId = setInterval(moveSnake,100);
+                    }
+                    if(options.score >= 200){
+                        clearInterval(TimerId);
+                        TimerId = setInterval(moveSnake,80);
+                    }
+//                    if(options.score >= 250){
+//                        clearInterval(TimerId);
+//                        TimerId = setInterval(moveSnake,50);
+//                    }
+//                    if(options.score >= 300){
+//                        clearInterval(TimerId);
+//                        TimerId = setInterval(moveSnake,30);
+//                    }
+                }
+
+                // 设置计时器
+                var TimerId = setInterval(moveSnake,200);
+            }
+        }
+
+        // 食物的构造函数
+        function Food(son,width,height){
+            this.son = son;
+            this.width = width;
+            this.height = height;
+
+            // 根据地图的尺寸 计算食物最大的x 跟 y 坐标 ，并随机生成一个坐标
+            this.foodX = Math.floor(Math.random() * options.maxX);
+            this.foodY = Math.floor(Math.random() * options.maxY);
+
+            // 判断食物是否生成在蛇身上 ， 如果是 重新生成
+            for(var i = 0; i < snake.position.length; i++){
+                while(this.foodX == snake.position[i][0] && this.foodY == snake.position[i][1]){
+                    this.foodX = Math.floor(Math.random() * options.maxX);
+                    this.foodY = Math.floor(Math.random() * options.maxY);
+                }
+            }
+            // 创建一个食物
+            var food = document.createElement("div");
+            // 给食物设置样式个位置
+            food.style.width = this.width + "px";
+            food.style.height = this.height + 'px';
+            food.style.position = 'absolute';
+            food.style.left = this.foodX * this.width + 'px';
+            food.style.top = this.foodY * this.height + 'px';
+            food.className = 'food';
+            // 添加在地图中
+            this.son.appendChild(food);
+        }
+        // 需要用到的值 封装成一个对象
+        var options = {
+            boxWidth: 30,
+            boxHeight: 30,
+            son: document.querySelector(".son"),
+            score: 0
+        };
+
+        // 将食物的最大坐标值  加入 需要用到的值的对象中，给其他构造函数使用
+        options.maxX = document.querySelector(".son").offsetWidth / options.boxWidth;
+        options.maxY = document.querySelector(".son").offsetHeight / options.boxHeight;
+
+        // 调用蛇的构造函数 给上实参
+        var snake = new Snake(options.son,options.boxWidth,options.boxHeight);
+        var food = new Food(options.son,options.boxWidth,options.boxHeight);
+        // 调用蛇的样式
+        snake.render();
+        // 调用蛇的移动方法
+        snake.move();
+        // 设置键盘响应事件来控制蛇移动的方向
+        document.onkeydown = function (e) {
+            e = e || window.event;
+            var key = e.keycode || e.which || e.charcode;
+            switch (key) {
+                case 38:
+                case 87:
+                    snake.sDirection = "top";
+                    break;
+                case 40:
+                case 83:
+                    snake.sDirection = "botton";
+                    break;
+                case 37:
+                case 65:
+                    snake.sDirection = "left";
+                    break;
+                case 39:
+                case 68:
+                    snake.sDirection = "right";
+                    break;
+                default:
+                    break;
+            }
+        }
+    </script>
+</body>
+
+</html>

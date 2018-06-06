@@ -1,0 +1,185 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        h2 {
+            text-align: center;
+            font-size: 30px;
+        }
+        .box {
+            width: 90%;
+            height: 600px;
+            background-color: skyblue;
+            margin: 0 auto;
+            border: 1px solid black;
+        }
+
+        .son {
+            width: 600px;
+            height: 510px;
+            background-color: pink;
+            margin: 50px auto;
+            position: relative;
+            overflow: hidden;
+        }
+        .food {
+            background: url("guagua.jpg") no-repeat center;
+            background-size: 100%,100%;
+        }
+    </style>
+</head>
+<body>
+    <h2>贪吃蛇</h2>
+    <div class="box">
+        <div class="son"></div>
+    </div>
+    <script>
+        //  设定好每节蛇身的宽高；
+        var snakesWidth = 30;
+        var snakesHeight = 30;
+        //  获取地图
+        var son = document.querySelector(".son");
+        
+        // 使用二维数组 设置蛇身初始位置的坐标和长度
+        var position = [[0,0],[1,0],[2,0]];
+
+        // 因为需要多次调用蛇的样式 所以封装一个函数  方便多次调用
+        function snakesRender(){
+            // 遍历
+             for (var i = 0; i < position.length; i++) {
+                // 创建一个div来表示每节蛇身
+                var div = document.createElement("div");
+                // 设置蛇的样式
+                div.style.width = snakesWidth + 'px';
+                div.style.height = snakesHeight + "px";
+                div.style.backgroundColor = '#' + Math.floor((Math.random() * 888) + 111);
+                div.style.position = "absolute";
+                div.style.left = position[i][0] * snakesWidth + 'px';
+                div.style.top = position[i][1] * snakesHeight + 'px';
+                // 给每个盒子设置一个类名
+                div.className = "snake";
+                // 将创建出来的div放在son盒子中
+                son.appendChild(div);
+            }
+        }
+
+        // 调用封装的 蛇身样式 没有移动时的初始位置
+        snakesRender();
+        
+    
+        // 设置蛇身默认的移动方向
+        var sDirection = 'right';
+
+        // 求出食物最大的坐标 
+        var maxX = son.offsetWidth / snakesWidth;
+        var maxY = son.offsetHeight / snakesHeight;
+        // 随机生成一个坐标
+        var foodX = Math.floor(Math.random() * maxX);
+        var foodY = Math.floor(Math.random() * maxY);
+
+        // 创建一个食物  类名
+        var food = document.createElement("div");
+        // 给食物设置样式
+        food.style.width = snakesWidth + "px";
+        food.style.height = snakesHeight + 'px';
+        food.style.position = 'absolute';
+        food.style.left = foodX * snakesWidth + 'px';
+        food.style.top = foodY * snakesHeight + 'px';
+        food.className = 'food';
+
+        // 生成食物
+        son.appendChild(food);
+
+
+        var TimerId = null;
+        // 设置计时器 
+       TimerId = setInterval(function(){
+            // 先获取到蛇头的位置
+            var headerX = position[position.length-1][0];
+            var headerY = position[position.length-1][1];
+
+            // 判断蛇的移动方向
+            switch (sDirection) {
+                case "right":
+                    headerX++;
+                    break;
+                case "left":
+                    headerX--;
+                    break;
+                case "top":
+                    headerY--;
+                    break;
+                case "botton":
+                    headerY++;
+                    break;
+                default:
+                    break;
+            }
+            // 将移动过后的蛇头位置添加到数组中 ，再删除蛇尾的位置 ，通过计时器使蛇移动
+            position.push([headerX,headerY]);
+
+            if(headerX == foodX && headerY == foodY){
+
+                foodX = Math.floor(Math.random() * maxX);
+                foodY = Math.floor(Math.random() * maxY);
+
+                food.style.left = foodX * snakesWidth + 'px';
+                food.style.top = foodY * snakesHeight + 'px';
+
+
+            }else {
+                position.shift();
+            }
+
+            if(headerX == maxX || headerX < 0 || headerY == maxY || headerY < 0){
+                alert("撞墙了！");
+                clearInterval(TimerId);
+            }
+            
+
+            // 获取每节蛇身的div类名
+            var snakes = document.getElementsByClassName("snake");
+
+            // 移动后会重新得到一个数组 所以要通过蛇身div的类名来删除旧数组 因为得到的是一个伪数组所以要进行遍历，删除每节蛇身
+            for(var i = 0;i < snakes.length;i++){
+                snakes[i].parentNode.removeChild(snakes[i]);
+                // 每删一个数组下标会少一个 所以 i--
+                i--;
+            }
+
+            // 调用封装的 每次移动后蛇身样式和位置
+            snakesRender();
+        }, 120);
+
+        // 通过键盘响应事件代表蛇的移动方向
+        window.onkeydown = function (e){
+            e = e || window.event;
+            var key = e.keycode || e.which || e.charcode;
+            switch (key) {
+                case 38:
+                    sDirection = "top";
+                    break;
+                case 40:
+                    sDirection = "botton";
+                    break;
+                case 37:
+                    sDirection = "left";
+                    break;
+                case 39:
+                    sDirection = "right";
+                    break;
+                default:
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
